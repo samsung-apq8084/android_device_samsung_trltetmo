@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2013, The Linux Foundation. All rights reserved.
+   Copyright (c) 2016, The Linux Foundation. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are
@@ -28,16 +28,15 @@
  */
 
 #include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
+#define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
+#include <sys/_system_properties.h>
 
-#include <cutils/properties.h>
 #include "vendor_init.h"
+#include "property_service.h"
 #include "log.h"
 #include "util.h"
-#include <sys/system_properties.h>
 
-#define ISMATCH(a,b)    (!strncmp(a,b,PROP_VALUE_MAX))
+#include "init_apq8084.h"
 
 void gsm_properties()
 {
@@ -45,43 +44,30 @@ void gsm_properties()
     property_set("ro.telephony.default_network", "9");
 }
 
-void init_variant_properties() {
-
-    char platform[PROP_VALUE_MAX];
-    char bootloader[PROP_VALUE_MAX];
-    char device[PROP_VALUE_MAX];
-    char devicename[PROP_VALUE_MAX];
-    int rc;
-
-    rc = property_get("ro.board.platform",platform, NULL);
-    if (!rc || !ISMATCH(platform, ANDROID_TARGET))
+void init_variant_properties()
+{
+    std::string platform = property_get("ro.board.platform");
+    if (platform != ANDROID_TARGET)
         return;
 
-    property_get("ro.bootloader", bootloader, NULL);
+    std::string bootloader = property_get("ro.bootloader");
 
-    if (strstr(bootloader,"N910W8")) {
-        /* trltecan These values are taken from TMO and edited for the 910W8 FIXME */
+    if (bootloader.find("N910T") == 0) {
+        property_set("ro.build.fingerprint", "samsung/trltetmo/trltetmo:6.0.1/MRA58K/N910TUVU2EPE3:user/release-keys");
+        property_set("ro.build.description", "trltetmo-user 6.0.1 MRA58K N910TUVU2EPE3 release-keys");
+        property_set("ro.product.model", "SM-N910T");
+        property_set("ro.product.device", "trltetmo");
+        gsm_properties();
+    } else if (bootloader.find("N910W8") == 0) {
         property_set("ro.build.fingerprint", "samsung/trltevl/trltecan:6.0.1/MRA58K/N910TUVU2EPE3:user/release-keys");
         property_set("ro.build.description", "trltevl-user 6.0.1 MRA58K N910TUVU2EPE3 release-keys");
         property_set("ro.product.model", "SM-N910W8");
         property_set("ro.product.device", "trltecan");
         gsm_properties();
     } else {
-        /* trltetmo */
-        property_set("ro.build.fingerprint", "samsung/trltetmo/trltetmo:6.0.1/MRA58K/N910TUVU2EPE3:user/release-keys");
-        property_set("ro.build.description", "trltetmo-user 6.0.1 MRA58K N910TUVU2EPE3 release-keys");
-        property_set("ro.product.model", "SM-N910T");
-        property_set("ro.product.device", "trltetmo");
-        gsm_properties();
+        ERROR("Setting product info FAILED\n");
     }
 
-
-    property_get("ro.product.device", device, NULL);
-    strlcpy(devicename, device, sizeof(devicename));
-    INFO("Found bootloader id %s setting build properties for %s device\n", bootloader, devicename);
-}
-
-
-void vendor_load_properties() {
-    init_variant_properties();
+    std::string device = property_get("ro.product.device");
+    INFO("Found bootloader id %s setting build properties for %s device\n", bootloader.c_str(), device.c_str());
 }
