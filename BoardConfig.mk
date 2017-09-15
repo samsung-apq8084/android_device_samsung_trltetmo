@@ -15,7 +15,7 @@
 # inherit from common trlte
 -include device/samsung/trlte-common/BoardConfigCommon.mk
 
-TARGET_OTA_ASSERT_DEVICE := trltecan,trltetmo,trltevzw,SM-N910T,SM-N910T3,SM-N910V,SM-N910W8
+TARGET_OTA_ASSERT_DEVICE := trltecan,trltetmo,trltevzw
 
 # Kernel
 TARGET_KERNEL_VARIANT_CONFIG := apq8084_sec_trlte_tmo_defconfig
